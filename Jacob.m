@@ -1,0 +1,53 @@
+function J = Jacob(T_base, FK, q, L)
+
+T_FK = T_base * FK ;
+% q1
+T_dq1 = RotR("dz",q(1)) * ... 
+            Transl("x",L)  * RotR("z",q(2)) * ...
+            Transl("x",L)  * RotR("z",q(3)) * ... 
+            Transl("x",L)  * RotR("z",q(4)) * ...
+            Transl("x",L) ;
+
+        
+T_FK_dq1 = T_base * T_dq1 * [inv(T_FK(1:3,1:3)) zeros(3,1); 0 0 0 1] ;
+
+J(1:6,1) = [T_FK_dq1(1,4) ; T_FK_dq1(2,4) ; T_FK_dq1(3,4) ; T_FK_dq1(3,2) ; T_FK_dq1(1,3) ; T_FK_dq1(2,1)];
+
+% q2
+T_dq2 = RotR("z",q(1)) * ... 
+            Transl("x",L)  * RotR("dz",q(2)) * ...
+            Transl("x",L)  * RotR("z",q(3)) * ... 
+            Transl("x",L)  * RotR("z",q(4)) * ...
+            Transl("x",L) ;
+
+        
+T_FK_dq2 = T_base * T_dq2 * [inv(T_FK(1:3,1:3)) zeros(3,1); 0 0 0 1] ;
+
+J(1:6,2) = [T_FK_dq2(1,4) ; T_FK_dq2(2,4) ; T_FK_dq2(3,4) ; T_FK_dq2(3,2) ; T_FK_dq2(1,3) ; T_FK_dq2(2,1)];
+
+% q3
+T_dq3 = RotR("z",q(1)) * ... 
+            Transl("x",L)  * RotR("z",q(2)) * ...
+            Transl("x",L)  * RotR("dz",q(3)) * ... 
+            Transl("x",L)  * RotR("z",q(4)) * ...
+            Transl("x",L) ;
+
+        
+T_FK_dq3 = T_base * T_dq3 * [inv(T_FK(1:3,1:3)) zeros(3,1); 0 0 0 1] ;
+
+J(1:6,3) = [T_FK_dq3(1,4) ; T_FK_dq3(2,4) ; T_FK_dq3(3,4) ; T_FK_dq3(3,2) ; T_FK_dq3(1,3) ; T_FK_dq3(2,1)];
+
+
+% q4
+T_dq4 = RotR("z",q(1)) * ... 
+            Transl("x",L)  * RotR("z",q(2)) * ...
+            Transl("x",L)  * RotR("z",q(3)) * ... 
+            Transl("x",L)  * RotR("dz",q(4)) * ...
+            Transl("x",L) ;
+
+        
+T_FK_dq4 = T_base * T_dq4 * [inv(T_FK(1:3,1:3)) zeros(3,1); 0 0 0 1] ;
+
+J(1:6,4) = [T_FK_dq4(1,4) ; T_FK_dq4(2,4) ; T_FK_dq4(3,4) ; T_FK_dq4(3,2) ; T_FK_dq4(1,3) ; T_FK_dq4(2,1)];
+
+end 
