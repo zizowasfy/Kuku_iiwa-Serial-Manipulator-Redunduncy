@@ -1,14 +1,18 @@
 function dq0 = calc_dQ0(l, q_current, objective, jointsRange)
 
 dq = 0.01; % small value added to compute the derivatives numerically
-k0 = 1;
+k0 = 0.1;
 
 % this is related to range objective function
 qm = jointsRange(:,1);
 qM = jointsRange(:,2);
 q_bar = (qm + qM)/2;
 
-J = Jacobian(l, q_current);
+% J = Jacobian(l, q_current);           #########
+FK = localFK(q_current,l(1));
+J = Jacob(eye(4), FK, q_current, l(1));
+J = [J(1:2,:) ; J(6,:)] ;  
+
 N = length(q_current);
 
 % objective function:
@@ -26,8 +30,11 @@ for i=1:N
     q_modified = q_current;
     q_modified(i) = q_modified(i) + dq;
 
-    J_modified = Jacobian(l, q_modified);
-    
+%     J_modified = Jacobian(l, q_modified);     ##########
+    FK = localFK(q_modified,l(1));
+    J_modified = Jacob(eye(4), FK, q_modified, l(1));
+    J_modified = [J_modified(1:2,:) ; J_modified(6,:)] ;  
+
     % objective function:
     if objective == "man"
         H_man_modified = sqrt( det(J_modified*J_modified') );
