@@ -1,7 +1,7 @@
 % Author ~ Ahmed Magd Aly
 % Innopolis University
 
-function pose = FK(l, q, enable_plot)
+function pose = FK(l, q, enable_plot, links_color, path_color)
 % Forward Kinematics Function:
 
 q = deg2rad(q);
@@ -45,7 +45,7 @@ O8 = O7 * T7;
 
 O = round([O0, O1, O2, O3, O4, O5, O6, O7, O8],10);
 
-global axes_plot links_plot joints_plot end_effector_plot
+global axes_plot links_plot joints_plot end_effector_plot path_plot
 
 
 
@@ -54,7 +54,7 @@ if enable_plot
     
 
 
-    as = 100; % axes scaler
+    as = 30; % axes scaler
     color = ['r','g','b']; % axes color
     
     index = 0;
@@ -76,12 +76,12 @@ if enable_plot
     joints_y = [points_y(1:end)];
     joints_z = [points_z(1:end)];
     
-    links_plot = [links_plot plot3(points_x, points_y, points_z,'Color', "0 0 0",'linewidth',2)];
+    links_plot = [links_plot plot3(points_x, points_y, points_z,'Color', links_color,'linewidth',2)];
     hold on
     joints_plot = [joints_plot plot3(joints_x(1:end-1), joints_y(1:end-1), joints_z(1:end-1),'.','Color','0.992 0.788 0.04 1','MarkerSize',20)];
     hold on
     end_effector_plot = [end_effector_plot plot3(joints_x(end), joints_y(end), joints_z(end),'.','Color','0.8 0 0 1','MarkerSize',20)];
-    path_plot = plot3(joints_x(end), joints_y(end), joints_z(end),'.','Color','0.8 0 0 1','MarkerSize',7.5);
+    path_plot = plot3(joints_x(end), joints_y(end), joints_z(end),'.','Color',path_color,'MarkerSize',7.5);
     
     
 %     xlim([-5 5])
