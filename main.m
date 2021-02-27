@@ -1,115 +1,59 @@
-clear all; clc; close all;
-% In this Code: direction signs are inverted since the robot reference is
-% not as the convention.
-% Clockwise -> (+ve) and Anti-Clockwise -> (-ve)
-%% Robot 
-L = 1 ;
-T_base = eye(4) ;
-q = [deg2rad(0), deg2rad(30), deg2rad(120), deg2rad(-90)]';  
-% Forward Kinematics 
-FK = localFK(q,L);
-% Jacobian
-Jacobian = Jacob(T_base, FK, q, L);
-W = eye(4) ;
-% RObot Visualization
-% figure
-% robot(L,q)
-%
+clear all
+close all
+clc
 
-%% PsuedoInverse
-q = [deg2rad(90), deg2rad(0), deg2rad(0), deg2rad(90)];        % Desired Position in Joint Space
-FK = localFK(q,L);
-final_pos = FK(1:2,4); % [x,y]  position in x,y plane
-final_ori = atan2(FK(2,1), FK(1,1)); % [phi] orientation around z
-final = [final_pos', final_ori];
+%% Redundancy:
 
-q = [deg2rad(5), deg2rad(30), deg2rad(0), deg2rad(0)]';          % Initial Position in Joint Space
-FK = localFK(q,L);
-initial_pos = FK(1:2,4);
-initial_ori = atan2(FK(2,1), FK(1,1));
-initial = [initial_pos', initial_ori];
-Jacobian = Jacob(T_base, FK, q, L);
+l = [340 200 200 200 200 126 4];
 
-current = initial;
+% Joints' limits for KUKA IIWA robot
+jointsRange = deg2rad([-170 170; -120 120; -170 170; -120 120; -170 170; -120 120; -175 175]);
 
-%%%%%%%%%%
-% PseudoInverse(final, current, Jacobian, q, L)
-%%%%%%%%%%
+q = [50 40 20 30 40 10 10]'; % initial configuration
+% final_config = [90 50 40 20 80 70 20]';
 
-%% Weighted 
+%% Trajectory:
+nPoints = 40;
+radius = sum(l) - 350;
+angle1 = linspace(-15,15,nPoints);
+angle2 = linspace(0,360*10,nPoints);
+x = radius*cosd(angle1);
+y = radius*sind(angle1);
+z = ones(1, nPoints)*340; %  + 10*sind(angle2);
 
-W = diag([2, 2, 1, 2]);
+% current_p = FK(l, q, 0);
+% [x, y] = generateSquare(current_p(1), current_p(2), 200, nPoints/4);
+% z = 340*ones(1,nPoints);
 
-%%%%%%%%%%%%%%  Defining the Final desired position and current Initial configuration
+trajectory = [x; y; z; zeros(1, nPoints); ones(1, nPoints)*pi/2; atan2(y,x)];
 
-q = [deg2rad(90), deg2rad(-90), deg2rad(90), deg2rad(90)];        % Desired Position in Joint Space
-FK = localFK(q,L);
-final_pos = FK(1:2,4); % [x,y]  position in x,y plane
-final_ori = atan2(FK(2,1), FK(1,1)); % [phi] orientation around z
-final = [final_pos', final_ori];                                  % Desired Position in Task Space
+%% Weighted Pseudo Inverse Solution
+W = diag([0.5 0.5 0.5 0.75 0.2 0.2 0.2]);
+[all_configs, all_positions] = PseudoInverseIK(q, trajectory, l, 1, W);
 
-q = [deg2rad(10), deg2rad(0), deg2rad(0), deg2rad(-90)]';         % Initial Position in Joint Space
-FK = localFK(q,L);
-initial_pos = FK(1:2,4);
-initial_ori = atan2(FK(2,1), FK(1,1));
-initial = [initial_pos', initial_ori];
-Jacobian = Jacob(T_base, FK, q, L);
+%% Damped Least Square:
+% myo = 1.5;
+% all_configs = DampedLeastSquares(q, trajectory, l, myo)
 
-current = initial;
+%% Null Space Solution:
+% objective = "man";
+% [all_configs, all_positions] = NullSpaceIK(q, trajectory, l, 1, objective, jointsRange);
 
+%% Task Augmentation:
+% current_p = FK(l, q, 0);
+% [x, y] = generateSquare(current_p(1), current_p(2), 200, nPoints/4);
+% z = 340*ones(1,nPoints);
+% TaskAugmentation(q, l, x, y, z, nPoints/4)
 
-%%%%%%%%%%
-% WeightedPseudoInverse(final, current, Jacobian, q, L, W)
-%%%%%%%%%%
+%% Comparison:
+% [all_configs, all_positions] = Comparison(q, trajectory, l, 1, objective, jointsRange);
 
-%% Damped Least Square (DLS)
+nConfigs = 4;
 
-myo = 1.5 ;
- 
-%%%%%%%%%%%%%%  Defining the Final desired position and current Initial configuration
+% plot3(all_positions(1,end-10:end), all_positions(2,end-10:end), all_positions(3,end-10:end), '.','Color', '1 0 0' ,'MarkerSize',7.5)
 
-q = [deg2rad(90), deg2rad(0), deg2rad(0), deg2rad(45)];        % Desired Position in Joint Space
-FK = localFK(q,L);
-final_pos = FK(1:2,4); % [x,y]  position in x,y plane
-final_ori = atan2(FK(2,1), FK(1,1)); % [phi] orientation around z
-final = [final_pos', final_ori]                                % Desired Position in Task Space
+for i=1:7
+    FK(l, cell2mat(all_configs(end-i*15)), 1, '1 0 1', '1 0 0');
+end
 
-q = [deg2rad(5), deg2rad(0), deg2rad(0), deg2rad(0)]';         % Initial Position in Joint Space
-FK = localFK(q,L);
-initial_pos = FK(1:2,4);
-initial_ori = atan2(FK(2,1), FK(1,1));
-initial = [initial_pos', initial_ori]
-Jacobian = Jacob(T_base, FK, q, L)
-
-current = initial;
-
-%%%%%%%%%%
-% DampedLeastSquares(final, current, Jacobian, q, L, myo)
-%%%%%%%%%%
-
-%% Task Priority Augmentation  Task1- Square Path , Task2- Vertical Last Link 
-
-%%%%%%%%%%%%%%  Defining the Final desired position and current Initial configuration
-
-% q = [deg2rad(170), deg2rad(0), deg2rad(-30), deg2rad(0)];           % Desired Position in Joint Space
-% FK = localFK(q,L);
-% final_pos = FK(1:2,4); % [x,y]  position in x,y plane
-% final_ori = atan2(FK(2,1), FK(1,1)); % [phi] orientation around z
-% final = [final_pos', final_ori];                                    % Desired Position in Task Space
-
-q = [deg2rad(0), deg2rad(30), deg2rad(120), deg2rad(-60)]';           % Initial Position in Joint Space
-FK = localFK(q,L);
-initial_pos = FK(1:2,4);
-initial_ori = atan2(FK(2,1), FK(1,1));
-initial = [initial_pos', initial_ori];
-Jacobian = Jacob(T_base, FK, q, L);
-
-current = initial;
-
-% Square path         
-[xs,ys,dim,n] = deal(current(1), current(2), 1, 10); %(start x,start y, square's side length, number of points)
-[xsq,ysq] = generateSquare(xs,ys,dim,n);
-
-%%%%%%%%%%
-TaskAugmentation(current, Jacobian, q, L, xsq, ysq, n)
-%%%%%%%%%%
+FK(l, cell2mat(all_configs(end)), 1, '0 0 0', '1 0 0');

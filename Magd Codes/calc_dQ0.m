@@ -1,7 +1,7 @@
 function dq0 = calc_dQ0(l, q_current, objective, jointsRange)
 
-dq = 0.01; % small value added to compute the derivatives numerically
-k0 = 0.00000001;
+dq = 0.0001; % small value added to compute the derivatives numerically
+k0 = 0.00001;
 
 % this is related to range objective function
 qm = jointsRange(:,1);

@@ -54,7 +54,7 @@ if enable_plot
     
 
 
-    as = 30; % axes scaler
+    as = 0; % axes scaler
     color = ['r','g','b']; % axes color
     
     index = 0;
@@ -81,12 +81,14 @@ if enable_plot
     joints_plot = [joints_plot plot3(joints_x(1:end-1), joints_y(1:end-1), joints_z(1:end-1),'.','Color','0.992 0.788 0.04 1','MarkerSize',20)];
     hold on
     end_effector_plot = [end_effector_plot plot3(joints_x(end), joints_y(end), joints_z(end),'.','Color','0.8 0 0 1','MarkerSize',20)];
-    path_plot = plot3(joints_x(end), joints_y(end), joints_z(end),'.','Color',path_color,'MarkerSize',7.5);
+    if path_color ~= "None"
+        path_plot = plot3(joints_x(end), joints_y(end), joints_z(end),'.','Color',path_color,'MarkerSize',7.5);
+    end
     
     
-%     xlim([-5 5])
-%     ylim([-5 5])
-%     zlim([-5 5])
+    xlim([-1000 1000])
+    ylim([-1000 1000])
+    zlim([-1000 1000])
     xlabel("X")
     ylabel("Y")
     zlabel("Z")

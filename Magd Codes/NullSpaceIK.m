@@ -1,8 +1,8 @@
 function [all_configs, all_positions] = NullSpaceIK(current_config, trajectory, l, is_it_planar_trajectory, objective, jointsRange)
 
-sp = 500;
+sp = 350;
 
-current_p = FK(l, current_config, 0);
+current_p = FK(l, current_config, 0, '0 0 0', '1 0 0');
 % final_p = FK(l, final_config, 0);
 
 all_configs = {current_config};
@@ -23,7 +23,11 @@ hold on
 nPoints = size(trajectory, 2);
 for i=1:nPoints
     final_p = trajectory(:,i);
-    while norm(final_p - current_p) > 10
+    
+    if i == 2
+        config_idx = length(all_configs);
+    end
+    while norm(final_p - current_p) > 50
 
         if ~ishandle(Robot), return, end
         delete([links_plot,joints_plot,end_effector_plot])
@@ -46,8 +50,8 @@ for i=1:nPoints
 
         all_configs{end+1} = new_config;  
 
-        current_p = FK(l, new_config, 1);
-%         FK(l, final_config, 1);
+        current_p = FK(l, new_config, 1, '0 0 0', '1 0 0');
+%         FK(l, [atan2d(current_p(2), current_p(1))+90 90 0 0 0 0 0], 1, "0 0 1", 'None');
         drawnow
 
         all_positions{end+1} = current_p;
@@ -55,9 +59,13 @@ for i=1:nPoints
     end 
 end
 
+all_configs = all_configs(config_idx:end);
+
+delete([links_plot,joints_plot,end_effector_plot])
+delete(axes_plot)
 % for the planar shapes, it is better to set the y and x axes limits to be
 % the same values, in order to visualize the drawn shape better.
 
-if is_it_planar_trajectory
-    daspect([1 1 1])
-end
+% if is_it_planar_trajectory
+%     daspect([1 1 1])
+% end
